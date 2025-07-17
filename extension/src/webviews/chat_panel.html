@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIcode Chat</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #chat-output {
+            flex-grow: 1;
+            background-color: var(--vscode-editorGroup-background);
+            border: 1px solid var(--vscode-editorGroup-border);
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .message-container {
+            margin-bottom: 8px;
+        }
+        .user-message {
+            text-align: right;
+            color: var(--vscode-editor-foreground);
+        }
+        .ai-message {
+            text-align: left;
+            color: var(--vscode-terminal-ansiBrightMagenta); /* A distinct color for AI */
+        }
+        .ai-response {
+            background-color: var(--vscode-editor-background);
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block; /* To make background fit content */
+            max-width: 90%;
+        }
+        #input-area {
+            display: flex;
+            padding-top: 10px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            margin-right: 10px;
+        }
+        #send-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-output">
+        <div class="message-container ai-message">
+            <span class="ai-response">Hello! How can I assist you with your code today?</span>
+        </div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi(); // Standard VS Code Webview API
+
+        const chatOutput = document.getElementById('chat-output');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        function postMessageToExtension(command, text) {
+            vscode.postMessage({ command: command, text: text });
+        }
+
+        function addMessage(sender, text) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            messageContainer.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+
+            const messageSpan = document.createElement('span');
+            messageSpan.classList.add(sender === 'ai' ? 'ai-response' : ''); // Only AI responses get the distinct background
+            messageSpan.textContent = text;
+
+            messageContainer.appendChild(messageSpan);
+            chatOutput.appendChild(messageContainer);
+
+            // Scroll to the bottom
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+        sendButton.addEventListener('click', () => {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                postMessageToExtension('sendMessage', message);
+                userInput.value = ''; // Clear input field
+            }
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Handle messages from the extension (e.g., AI responses)
+        window.addEventListener('message', event => {
+            const message = event.data; // The JSON data our extension sent
+            switch (message.command) {
+                case 'addMessage':
+                    addMessage(message.sender, message.text);
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
