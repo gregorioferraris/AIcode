@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+requests
+python-dotenv
+ollama
+pydantic
+# Librerie aggiuntive per fasi future
+# ast è built-in ma per chiarezza
+# gitpython # Per controllo versione (Fase 6)
+# docker # Per esecuzione codice in sandbox (Fase 6, richiede Docker installato)
+# chromadb # Per RAG avanzato/modello dominio (Fase 6)
+# serpapi # O altra API di ricerca web (Fase 7)
