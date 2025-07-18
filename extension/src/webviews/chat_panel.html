@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIcode Chat</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #chat-output {
+            flex-grow: 1;
+            background-color: var(--vscode-editorGroup-background);
+            border: 1px solid var(--vscode-editorGroup-border);
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .message-container {
+            margin-bottom: 8px;
+        }
+        .user-message {
+            text-align: right;
+            color: var(--vscode-editor-foreground);
+        }
+        .ai-message {
+            text-align: left;
+            color: var(--vscode-terminal-ansiBrightMagenta); /* A distinct color for AI */
+        }
+        .ai-response {
+            background-color: var(--vscode-editor-background);
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            max-width: 90%;
+        }
+
+        /* Code Area Styling */
+        #code-area-container {
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+            border: 1px solid var(--vscode-editorGroup-border);
+            border-radius: 4px;
+            background-color: var(--vscode-editorGroup-background);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #code-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--vscode-editor-foreground);
+        }
+        #generated-code {
+            width: 100%;
+            height: 150px; /* Adjustable height */
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            padding: 8px;
+            font-family: var(--vscode-editor-font-family);
+            font-size: var(--vscode-editor-font-size);
+            resize: vertical; /* Allow vertical resizing */
+        }
+        #code-action-buttons {
+            margin-top: 8px;
+            text-align: right;
+        }
+        .action-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .action-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+        #input-area {
+            display: flex;
+            padding-top: 10px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            margin-right: 10px;
+        }
+        #send-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-output">
+        <div class="message-container ai-message">
+            <span class="ai-response">Hello! How can I assist you with your code today?</span>
+        </div>
+    </div>
+
+    <div id="code-area-container">
+        <div id="code-header">Generated Code: <span id="code-language"></span></div>
+        <textarea id="generated-code" readonly></textarea>
+        <div id="code-action-buttons">
+            <button class="action-button" id="copy-code-button">Copy</button>
+            <button class="action-button" id="save-code-button">Save to File</button>
+        </div>
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        const chatOutput = document.getElementById('chat-output');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const codeAreaContainer = document.getElementById('code-area-container');
+        const generatedCodeTextarea = document.getElementById('generated-code');
+        const codeLanguageSpan = document.getElementById('code-language');
+        const copyCodeButton = document.getElementById('copy-code-button');
+        const saveCodeButton = document.getElementById('save-code-button');
+
+        function postMessageToExtension(command, data) {
+            vscode.postMessage({ command: command, ...data });
+        }
+
+        function addMessage(sender, text) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            messageContainer.classList.add(sender === 'user' ? 'user-message' : 'ai-message');
+
+            const messageSpan = document.createElement('span');
+            messageSpan.classList.add(sender === 'ai' ? 'ai-response' : '');
+            messageSpan.textContent = text;
+
+            messageContainer.appendChild(messageSpan);
+            chatOutput.appendChild(messageContainer);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+        function showCodeArea(code, language, textMessage) {
+            if (textMessage) {
+                addMessage('ai', textMessage); // Add descriptive text
+            }
+            generatedCodeTextarea.value = code;
+            codeLanguageSpan.textContent = `(${language || 'plaintext'})`;
+            codeAreaContainer.style.display = 'block'; // Show the code area
+            chatOutput.scrollTop = chatOutput.scrollTop; // Maintain scroll position for chat
+        }
+
+        function hideCodeArea() {
+            codeAreaContainer.style.display = 'none';
+            generatedCodeTextarea.value = '';
+            codeLanguageSpan.textContent = '';
+        }
+
+        sendButton.addEventListener('click', () => {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                hideCodeArea(); // Hide previous code area on new message
+                postMessageToExtension('sendMessage', { text: message });
+                userInput.value = '';
+            }
+        });
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        copyCodeButton.addEventListener('click', () => {
+            const codeToCopy = generatedCodeTextarea.value;
+            postMessageToExtension('copyCode', { code: codeToCopy });
+        });
+
+        saveCodeButton.addEventListener('click', () => {
+            const codeToSave = generatedCodeTextarea.value;
+            postMessageToExtension('saveCode', { code: codeToSave });
+        });
+
+        // Handle messages from the extension (e.g., AI responses)
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'addMessage':
+                    addMessage(message.sender, message.text);
+                    break;
+                case 'showCode':
+                    showCodeArea(message.code, message.language, message.textMessage);
+                    break;
+                case 'hideCode':
+                    hideCodeArea();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

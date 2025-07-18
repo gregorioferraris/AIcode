@@ -1,0 +1,59 @@
+import * as vscode from 'vscode';
+
+interface MessagePayload {
+    message: string;
+    context?: { [key: string]: any };
+    history?: Array<{ role: string, content: string }>;
+}
+
+// Define interfaces for the structured AI response
+interface AIResponseContent {
+    text?: string;
+    code?: string;
+    language?: string;
+}
+
+interface AIResponse {
+    response_type: 'text' | 'code_suggestion';
+    content: AIResponseContent;
+}
+
+/**
+ * Sends a message to the AIcode backend.
+ * @param payload The message payload including message, context, and history.
+ * @returns A Promise that resolves with the backend's structured response or rejects on error.
+ */
+export async function sendMessageToBackend(payload: MessagePayload): Promise<AIResponse> {
+    const backendHost = vscode.workspace.getConfiguration('aicode').get('backendHost', '127.0.0.1');
+    const backendPort = vscode.workspace.getConfiguration('aicode').get('backendPort', 5000);
+    const url = `http://${backendHost}:${backendPort}/chat`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
+        }
+
+        const data: AIResponse = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error('Error sending message to backend:', error);
+        vscode.window.showErrorMessage(`AIcode backend error: ${error instanceof Error ? error.message : String(error)}. Is the backend running?`);
+        // Return a dummy error response in the expected format
+        return {
+            response_type: 'text',
+            content: {
+                text: `Error: Could not connect to AIcode backend. Is it running at ${url}? Details: ${error instanceof Error ? error.message : String(error)}`
+            }
+        };
+    }
+}
