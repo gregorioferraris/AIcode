@@ -1,49 +1,26 @@
-<<<<<<< HEAD
+// AIcode/extension/src/extension.ts
+
 import * as vscode from 'vscode';
-import { ChatPanelProvider } from './webviews/chat_panel';
+import { ChatPanel } from './client'; // Importa ChatPanel dal file client.ts
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Congratulations, your extension "aicode" is now active!');
 
-    // --- Register the Chat Panel Webview ---
-    const chatPanelProvider = new ChatPanelProvider(context.extensionUri);
+    // Registra il comando per avviare la chat come pannello editor
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(ChatPanelProvider.viewType, chatPanelProvider)
+        vscode.commands.registerCommand('aicode.startChat', () => {
+            ChatPanel.createOrShow(context.extensionUri);
+        })
     );
 
-    // --- Register a simple command to show the chat panel ---
+    // Registra la WebviewViewProvider per il pannello nella sidebar
     context.subscriptions.push(
-        vscode.commands.registerCommand('aicode.showChatPanel', () => {
-            vscode.commands.executeCommand('workbench.view.extension.aicode-sidebar-view');
-        })
+        vscode.window.registerWebviewViewProvider(
+            'aicode.chatView', // Questo ID deve corrispondere a quello in package.json -> views
+            new ChatPanel(context.extensionUri)
+        )
     );
 }
 
+// Questo metodo viene chiamato quando la tua estensione viene disattivata
 export function deactivate() {}
-=======
-import * as vscode from 'vscode';
-import { ChatPanelProvider } from './webviews/chat_panel'; // Import your chat panel provider
-
-export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "aicode" is now active!');
-
-    // --- Register the Chat Panel Webview ---
-    const chatPanelProvider = new ChatPanelProvider(context.extensionUri);
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(ChatPanelProvider.viewType, chatPanelProvider)
-    );
-
-    // --- Register a simple command to show the chat panel ---
-    context.subscriptions.push(
-        vscode.commands.registerCommand('aicode.showChatPanel', () => {
-            // This command doesn't directly open the view,
-            // but ensures it's registered. Users would typically
-            // open it from the VS Code sidebar directly.
-            vscode.commands.executeCommand('workbench.view.extension.aicode-sidebar-view'); // Replace with your actual view ID if different
-        })
-    );
-}
-
-// This method is called when your extension is deactivated
-export function deactivate() {}
->>>>>>> 9fd0feb540c9d7bdf0e744e03c4074217b655561

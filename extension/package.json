@@ -1,76 +1,62 @@
 {
-  "name": "aicode",
-  "displayName": "AIcode",
-  "description": "Your AI-powered coding assistant",
-  "version": "0.0.1",
-  "publisher": "YourName",
-  "engines": {
-    "vscode": "^1.80.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onView:aicode.chatPanel"
-  ],
-  "main": "./out/extension.js",
-  "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "aicode-sidebar-view",
-          "title": "AIcode",
-          "icon": "media/aicode-icon.svg"
-        }
-      ]
+    "name": "aicode",
+    "displayName": "AIcode",
+    "description": "Your AI Software Engineer Assistant for VS Code",
+    "version": "0.0.1",
+    "publisher": "YourName",
+    "engines": {
+        "vscode": "^1.90.0"
     },
-    "views": {
-      "aicode-sidebar-view": [
-        {
-          "id": "aicode.chatPanel",
-          "name": "Chat"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "aicode.showChatPanel",
-        "title": "Show AIcode Chat Panel"
-      }
+    "categories": [
+        "Other"
     ],
-    "configuration": {
-      "title": "AIcode Configuration",
-      "properties": {
-        "aicode.backendHost": {
-          "type": "string",
-          "default": "127.0.0.1",
-          "description": "The host address for the AIcode backend server."
+    "activationEvents": [
+        "onCommand:aicode.startChat",
+        "onView:aicode.chatView"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "aicode.startChat",
+                "title": "AIcode: Start Chat Editor"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "aicode-view",
+                    "title": "AIcode",
+                    "icon": "media/aicode-icon.svg"
+                }
+            ]
         },
-        "aicode.backendPort": {
-          "type": "number",
-          "default": 5000,
-          "description": "The port for the AIcode backend server."
+        "views": {
+            "aicode-view": [
+                {
+                    "id": "aicode.chatView",
+                    "name": "AI Chat",
+                    "type": "webview"
+                }
+            ]
         }
-      }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.90.0",
+        "@types/node": "18.x",
+        "@typescript-eslint/eslint-plugin": "^6.x.0",
+        "@typescript-eslint/parser": "^6.x.0",
+        "eslint": "^8.x.0",
+        "typescript": "^5.x.0",
+        "@vscode/test-cli": "^0.0.9",
+        "@vscode/test-electron": "^2.3.9"
     }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.80.0",
-    "@types/node": "^18.17.0",
-    "@types/mocha": "^10.0.1",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "eslint": "^8.47.0",
-    "typescript": "^5.1.6"
-  }
 }
-

@@ -1,3 +1,10 @@
 <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#ffffff" d="M8 0a8 8 0 100 16A8 8 0 008 0zM4 6h2v4H4V6zm6 0h2v4h-2V6z"/>
+    <rect width="16" height="16" fill="#2D2D30"/>
+
+    <rect x="2" y="2" width="12" height="12" fill="#FFFFFF" rx="1" ry="1"/>
+
+    <path d="M 14 2 L 10 2 L 14 6 Z" fill="#E0E0E0"/>
+
+    <circle cx="8" cy="8" r="3" fill="#FFD700"/> <rect x="7" y="10" width="2" height="1" fill="#808080"/>
+    <rect x="7.5" y="11" width="1" height="0.5" fill="#505050"/>
 </svg>

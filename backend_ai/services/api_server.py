@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
+import uvicorn
 
 # Define a Pydantic model for incoming messages
 class MessageRequest(BaseModel):
@@ -38,3 +39,30 @@ async def chat_endpoint(request: MessageRequest):
     if "code" in message_lower or "hello world" in message_lower:
         # Simulate a code response for demonstration
         sample_code = """
+def greet(name):
+    \"\"\"
+    This function greets the given name.
+    \"\"\"
+    return f"Hello, {name}! Welcome to AIcode."
+
+if __name__ == "__main__":
+    print(greet("AIcode User"))
+"""
+        return AIResponse(
+            response_type="code_suggestion",
+            content=AIResponseContent(
+                code=sample_code,
+                language="python",
+                text="Here's a 'Hello World' Python function for you:"
+            )
+        )
+    else:
+        # Simulate a text response
+        response_text = f"AIcode backend received: '{request.message}'. (Phase 1)"
+        return AIResponse(
+            response_type="text",
+            content=AIResponseContent(text=response_text)
+        )
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=5000)
